@@ -6,6 +6,11 @@ sensor = DHT22(Pin(2)) # GPIO 2
 led = Pin("LED", Pin.OUT) 
 led.on() 
 
+# Conections guide:
+# Power: Pin 36 (3V3 (OUT))
+# Data: Pin 4 (GP2)
+# Ground: Pin 8 (GND)
+
 def read_sensor():
     try:
         sensor.measure()
