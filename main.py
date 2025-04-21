@@ -10,9 +10,14 @@ raspberryLed.on()
 customLed = Pin(15, Pin.OUT)
 customLed.on()
 
+# Connections guide:
+# Power: Pin 36 (3V3 (OUT))
+# Data: Pin 4 (GP2)
+# Ground: Pin 8 (GND)
+
 # Connect to WiFi
-ssid = '-'
-password = '-'
+ssid = ''
+password = ''
 
 def connect_wifi():
     wlan = network.WLAN(network.STA_IF)
@@ -30,12 +35,18 @@ def connect_wifi():
         print('Failed to connect to network')
         wlan.active(False)
 
-connect_wifi()  # Connect to WiFi
+def check_wifi_connection():
+    wlan = network.WLAN(network.STA_IF)
+    if not wlan.isconnected():
+        print('WiFi connection lost. Attempting to reconnect...')
+        wlan.active(False)
+        sleep(1)
+        wlan.active(True)
+        connect_wifi()
+        return wlan.isconnected()
+    return True
 
-# Connections guide:
-# Power: Pin 36 (3V3 (OUT))
-# Data: Pin 4 (GP2)
-# Ground: Pin 8 (GND)
+connect_wifi()  # Connect to WiFi
 
 def read_sensor():
     try:
@@ -48,7 +59,7 @@ def read_sensor():
         return None, None
 
 def post_weather_data(temp, hum):
-    url = '-'
+    url = ''
     data = {
         'temperature': temp,
         'humidity': hum,
@@ -76,8 +87,11 @@ while True:
             print(f'Temperature: {temp:.1f} C')
             print(f'Humidity: {hum:.1f}%')
             print('-------------------')
-            post_weather_data(temp, hum)
-        sleep(5)  
+            if check_wifi_connection():  # Check WiFi connection before posting
+                post_weather_data(temp, hum)
+            else:
+                print('Skipping data post due to WiFi connection issues')
+        sleep(60)  
     except KeyboardInterrupt:
         raspberryLed.off()  
         print('Monitoring stopped')
